@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} Home Page {% endblock title %}
+{% block content %}
+    <style>
+        /* Настройка кнопочек */
+        .container.marketing {
+            position: relative;
+        }
+
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            margin-top: -40px;
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10; /* самая высокая глубина */
+        }
+
+        /* Положение "next кнопки" справа */
+        .next {
+            right: 0;
+            margin-right: 12px;
+            border-radius: 3px 0 0 3px;
+        }
+
+        /* При наведении курсора добавьте черный цвет фона с немного прозрачным */
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Настройка полного описания */
+        .overlay-description {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.95); /* Белый фон с прозрачностью */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-size: 0.95rem;
+            text-align: center;
+            z-index: 9;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .col-md-6:hover {
+            background-color: #fff;
+        }
+
+        .col-md-6:hover .overlay-description {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .card-body-content {
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-footer-status {
+            margin-top: auto;
+        }
+
+        .progress {
+            height: 6px;
+        }
+    </style>
+
+
+    <div class="container marketing">
+        <div class="container-fluid px-0">
+            <div class="d-flex align-items-center py-4">
+                <form action="{% url 'home' %}" method="get" class="w-100 shadow-sm p-2 bg-white rounded" role="search">
+                    <input type="search" name="q" class="form-control"
+                           placeholder="Search for authors and titles"
+                           aria-label="Search"
+                           value="{{ query }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container marketing">
+        <div class="row mb-2">
+            {% for book in books %}
+                <div class="col-md-6 books-container">
+                    <div class="book-card row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative"
+                         data-book-id="{{ book.id }}"
+                         data-title="{{ book.title }}"
+                         data-authors="
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                 {% for author in book.authors.all %}{{ author.name }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                         data-year="{{ book.year|default:'Год не указан' }}"
+                         data-description="{{ book.description|default:'Описание отсутствует.' }}"
+                         style="cursor: pointer;" onclick="openBookModal(this)">
+
+                        <!-- Остальная часть вашей разметки -->
+                        <div class="col p-4 d-flex flex-column position-static">
+                            {% if book.authors.all %}
+                                <strong class="d-inline-block mb-2 text-primary-emphasis book-authors">
+                                    {% for author in book.authors.all %}
+                                        {{ author.name|truncatechars:30 }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </strong>
+                            {% else %}
+                                <strong class="d-inline-block mb-2 text-primary-emphasis">Автор не добавлен</strong>
+                            {% endif %}
+
+                            <h3 class="mb-0 book-title">{{ book.title|truncatechars:30 }}</h3>
+                            <div class="mb-1 text-body-secondary">{{ book.year }} год</div>
+                            <p class="card-text mb-auto book-description">{{ book.description|truncatewords:15 }}</p>
+                        </div>
+
+                        <div class="col-auto d-none d-lg-block">
+                            {% if book.cover %}
+                                <img src="{{ '../static/media/'|add:book.cover.url }}" alt="Обложка {{ book.title }}"
+                                     width="200" height="250" style="object-fit: fill;">
+                            {% else %}
+                                <svg aria-label="Placeholder: Thumbnail" class="bd-placeholder-img " height="250"
+                                     preserveAspectRatio="xMidYMid slice" role="img" width="200"
+                                     xmlns="http://www.w3.org/2000/svg"><title>Placeholder</title>
+                                    <rect width="100%" height="100%" fill="#55595c"></rect>
+                                    <text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text>
+                                </svg>
+                            {% endif %}
+                        </div>
+
+                        <div class="overlay-description">
+                            {% if book.description %}
+                                {{ book.description|truncatewords:80 }}
+                            {% else %}
+                                <p> Описание отсутствует.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <a class="prev" onclick="showBooks(-1)">&#10094;</a>
+        <a class="next" onclick="showBooks(1)">&#10095;</a>
+    </div>
+
+    <!--  -->
+    <div class="container marketing my-5">
+        <!-- Начало цикличного блока карточек -->
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+
+            {% for request in borrow_requests_user|slice:":4" %}
+                <div class="col">
+                    <div class="card h-100 book-card shadow-sm">
+                        {% if request.book.cover %}
+                            <img src="{{ '../static/media/'|add:request.book.cover.url }}"
+                                 alt="Обложка {{ request.book.title }}"
+                                 class="book-cover" height="400" style="object-fit: fill;"/>
+                        {% else %}
+                            <svg class="book-cover bd-placeholder-img" width="200" height="250"
+                                 xmlns="http://www.w3.org/2000/svg" role="img"
+                                 aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice">
+                                <title>Placeholder</title>
+                                <rect width="100%" height="100%" fill="#55595c"/>
+                                <text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text>
+                            </svg>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column card-body-content">
+                            <small class="text-muted mb-2">Дата заявки: {{ request.requested_at|date:"Y-m-d" }}</small>
+                            <h5 class="card-title">{{ request.book.title }}</h5>
+                            <p class="card-text text-muted">Авторы:
+                                {% for author in request.book.authors.all %}
+                                    {{ author.name }}
+                                {% empty %}
+                                    Не указано
+                                {% endfor %}
+                            </p>
+                            <div class="card-footer-status">
+                                <div class="mt-auto pt-3">
+                                    <div class="mt-auto pt-3">
+                                        {% if request.status == 'in_queue' %}
+                                            <span class="badge bg-primary">В очереди</span>
+                                        {% elif request.status == 'approved' %}
+                                            <span class="badge bg-success">Выдана</span>
+                                        {% elif request.status == 'pending' %}
+                                            <span class="badge bg-warning">Ожидает</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Отказано</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Прогресс бар для статуса "Выдана" -->
+                                {% if request.status == 'approved' and request.due_back %}
+                                    <div class="progress mt-2" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                             style="width: {% widthratio request.approved_at|timesince:request.due_back 100 1 %}%"
+                                             aria-valuenow="{% widthratio request.approved_at|timesince:request.due_back 100 1 %}"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small class="text-muted mt-1">До
+                                        возврата: {{ request.due_back|date:"Y-m-d" }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    {% include 'modals/book_details.html' %}
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("searchInput");
+            const bookCards = document.querySelectorAll(".book-card");
+
+            if (!searchInput || !bookCards.length) return;
+
+            searchInput.addEventListener("input", function () {
+                const query = this.value.trim().toLowerCase();
+
+                bookCards.forEach(card => {
+                    const title = card.getAttribute("data-title")?.toLowerCase() || "";
+                    const authors = card.getAttribute("data-authors")?.toLowerCase() || "";
+                    // Добавь, если есть жанры:
+                    // const genres = card.getAttribute("data-genres")?.toLowerCase() || "";
+
+                    if (title.includes(query) || authors.includes(query)) {
+                        card.style.display = ""; // показываем
+                    } else {
+                        card.style.display = "none"; // скрываем
+                    }
+                });
+            });
+        });
+
+        const borrowRequests = [
+            {% for request in borrow_requests %}
+                {
+                    id: {{ request.id }},
+                    bookId: {{ request.book.id }},
+                    username: "{{ request.user.username }}",
+                    avatarUrl: "{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}{% static 'media/logo.png' %}{% endif %}",
+                    requestedAt: "{{ request.requested_at|date:'d.m.Y H:i' }}",
+                    bookTitle: "{{ request.book.title }}",
+                    status: "{{ request.status }}",
+                    description: "{{ request.description }}"
+                },
+            {% endfor %}
+        ];
+
+        function showReviewsForBook(bookId) {
+            const container = document.getElementById('reviewsContainer');
+            const notice = document.getElementById('moreUsersNotice');
+            container.innerHTML = ''; // Очистка предыдущих отзывов
+            notice.innerHTML = ''; // Очистка предыдущего уведомления
+
+            const filtered = borrowRequests.filter(r => r.bookId == bookId);
+
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-muted">В очереди никого нет</p>';
+                return;
+            }
+
+            const limited = filtered.slice(0, 3);
+
+            limited.forEach(review => {
+                const card = document.createElement('div');
+                card.className = 'd-flex text-body-secondary pt-3 align-items-center';
+
+                const statusBadge = review.status === 'pending'
+                    ? `<span class="badge bg-warning text-dark">Ожидает</span>`
+                    : `<span class="badge bg-info">В очереди</span>`;
+
+                card.innerHTML = `
+            <!-- Аватарка пользователя -->
+            <img class="rounded-circle account-img"
+                 src="${review.avatarUrl}"
+                 width="100" height="100"
+                 style="object-fit: cover;"
+                 alt="Аватар">
+
+            <!-- Основная информация -->
+            <div class="w-100 pb-3 mb-0 small lh-sm border-bottom">
+                <div class="d-flex justify-content-between">
+                    <strong class="text-gray-dark">@${review.username}</strong>
+                    <small class="text-muted">${review.requestedAt}</small>
+                </div>
+                <p class="mb-1">
+                    Запрос на книгу: <strong>${review.bookTitle}</strong><br>
+                    Статус: ${statusBadge}
+                </p>
+            </div>
+        `;
+                container.appendChild(card);
+            });
+
+            if (filtered.length > 3) {
+                notice.textContent = `Ещё ${filtered.length - 3} человек в очереди`;
+            }
+        }
+
+
+        function openBookModal(element) {
+            const modal = new bootstrap.Modal(document.getElementById('bookModal'));
+
+            // Получаем данные из data-атрибутов
+            const title = element.getAttribute('data-title');
+            const authors = element.getAttribute('data-authors');
+            const year = element.getAttribute('data-year');
+            const description = element.getAttribute('data-description');
+            const bookId = element.getAttribute('data-book-id'); // ← Новый атрибут
+
+            // Обложка — если есть
+            const coverElement = element.querySelector('img');
+            const coverUrl = coverElement ? coverElement.src : '';
+
+            // Заполняем модалку
+            document.getElementById('bookModalTitle').textContent = title;
+            document.getElementById('modalAuthors').textContent = authors || 'Не указано';
+            document.getElementById('modalYear').textContent = year || 'Не указано';
+            document.getElementById('modalDescription').textContent = description || 'Описание отсутствует.';
+            document.getElementById('modalCover').src = coverUrl || 'https://via.placeholder.com/200x300?text= Нет+обложки';
+
+            const bookIdInput = document.getElementById('modal-book-id');
+            if (bookIdInput) {
+                bookIdInput.value = bookId;
+            }
+
+            showReviewsForBook(bookId);
+
+            modal.show();
+        }
+
+        let currentIndex = 0;
+        const itemsPerPage = 4;
+
+        function showBooks(direction) {
+            const items = document.querySelectorAll(".col-md-6");
+            const totalItems = items.length;
+
+            // Скрываем все элементы
+            items.forEach(item => item.style.display = 'none');
+
+            // Обновляем индекс
+            currentIndex += direction;
+
+            // Ограничиваем индекс
+            if (currentIndex < 0) {
+                currentIndex = 0;
+            }
+
+            const maxIndex = Math.ceil(totalItems / itemsPerPage) - 1;
+            if (currentIndex > maxIndex) {
+                currentIndex = maxIndex;
+            }
+
+            // Показываем нужные элементы
+            for (let i = currentIndex * itemsPerPage; i < Math.min((currentIndex + 1) * itemsPerPage, totalItems); i++) {
+                items[i].style.display = 'block';
+            }
+
+            // Управление видимостью кнопок
+            const prevButton = document.querySelector(".prev");
+            const nextButton = document.querySelector(".next");
+
+            if (prevButton && nextButton) {
+                // Показываем/скрываем кнопки в зависимости от наличия страниц
+                prevButton.style.display = (currentIndex > 0) ? "block" : "none";
+                nextButton.style.display = (currentIndex < maxIndex) ? "block" : "none";
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener("DOMContentLoaded", function () {
+            const items = document.querySelectorAll(".col-md-6");
+            const totalItems = items.length;
+            const maxIndex = Math.ceil(totalItems / itemsPerPage) - 1;
+
+            // Если книг нет вообще — скрываем кнопки
+            const prevButton = document.querySelector(".prev");
+            const nextButton = document.querySelector(".next");
+
+            if (prevButton && nextButton) {
+                if (totalItems === 0) {
+                    prevButton.style.display = "none";
+                    nextButton.style.display = "none";
+                } else {
+                    // Сначала показываем только доступные
+                    prevButton.style.display = "none";
+                    nextButton.style.display = (maxIndex > 0) ? "block" : "none";
+                }
+            }
+
+            showBooks(0); // Показать первые 4
+        });
+
+
+    </script>
+{% endblock content %}

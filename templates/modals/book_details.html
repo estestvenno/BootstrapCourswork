@@ -1,0 +1,42 @@
+{% load static %}
+<div class="modal fade" id="bookModal" tabindex="-1" aria-labelledby="bookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <img id="modalCover" src="" alt="Обложка" class="img-fluid mb-3"
+                             style="max-height: 300px; object-fit: contain;">
+                    </div>
+                    <div class="col-md-8">
+                        <p><strong>Автор(ы):</strong> <span id="modalAuthors"></span></p>
+                        <p><strong>Год издания:</strong> <span id="modalYear"></span></p>
+                        <p><strong>Описание:</strong></p>
+                        <p id="modalDescription" style="white-space: pre-line;"></p>
+                    </div>
+                </div>
+
+                <div class="my-3 p-3 bg-body rounded shadow-sm"><h6 class="border-bottom pb-2 mb-0">Очередь за
+                    книгой</h6>
+                    <div id="reviewsContainer">
+                    </div>
+                    <div id="moreUsersNotice" class="text-muted mt-2"></div>
+
+                </div>
+            </div>
+            <div class="modal-footer d-flex align-items-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <form id="borrowForm" method="post" action="{% url 'borrow_book' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="modal-book-id" name="book_id" value="">
+                    <button type="submit" class="btn btn-warning">Встать в очередь</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

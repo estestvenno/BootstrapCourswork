@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %} Home Page {% endblock title %}
+{% block content %}
+    <style>
+        /* Настройка кнопочек */
+        .container.marketing {
+            position: relative;
+        }
+
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            margin-top: -40px;
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10; /* самая высокая глубина */
+        }
+
+        /* Положение "next кнопки" справа */
+        .next {
+            right: 0;
+            margin-right: 12px;
+            border-radius: 3px 0 0 3px;
+        }
+
+        /* При наведении курсора добавьте черный цвет фона с немного прозрачным */
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Настройка полного описания */
+        .overlay-description {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.95); /* Белый фон с прозрачностью */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-size: 0.95rem;
+            text-align: center;
+            z-index: 9;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .col-md-6:hover {
+            background-color: #fff;
+        }
+
+        .col-md-6:hover .overlay-description {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+
+    <div class="px-4 py-5 my-5 text-center"><img class="d-block mx-auto mb-4"
+                                                 src="../static/media/logo.png" alt="logo" height="80">
+        <h1 class="display-5 fw-bold text-body-emphasis">Добро пожаловать в городскую библиотеку</h1>
+        <div class="col-lg-6 mx-auto"><p class="lead mb-4">Наша библиотека предлагает широкий выбор книг, журналов и
+            других
+            печатных изданий.
+            Здесь вы можете найти литературу на любой вкус — от классики до современных бестселлеров.
+            Приходите, читайте, развивайтесь!</p>
+        </div>
+    </div>
+
+    <div class="container marketing">
+        <hr class="featurette-divider">
+
+
+        <div class="row featurette">
+            <div class="col-md-7">
+                <h2 class="featurette-heading fw-normal lh-1">
+                    Наша библиотека находится в самом сердце города.
+                    <span class="text-body-secondary">Удобно для всех!</span>
+                </h2>
+                <p class="lead">
+                    Библиотека расположена в историческом центре,
+                    рядом с главными достопримечательностями и транспортными узлами.
+                    Мы работаем с 9:00 до 20:00 без выходных, чтобы вам было удобно посещать нас
+                    после работы или учёбы.
+                </p>
+                <p class="lead">
+                    В нашем фонде — более 100 000 книг, включая редкие издания, современную литературу
+                    и специализированные материалы. У нас есть уютные читальные залы, компьютерная зона
+                    и даже детский уголок для самых маленьких посетителей.
+                </p>
+                <p class="lead">
+                    Приходите за знаниями, вдохновением и новыми впечатлениями!
+                </p>
+            </div>
+
+            <div class="col-md-5">
+                <!-- Google Карта -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d144006.12689870398!2d37.2001485328125!3d55.669935400000014!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x46b54dc1d23b51c3%3A0x74763ed59c81ccb6!2z0KDQotCjINCc0JjQoNCt0JA!5e0!3m2!1sru!2sru!4v1747420611147!5m2!1sru!2sru"
+                        width="500" height="500" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+
+        <hr class="featurette-divider">
+    </div>
+
+
+    <div class="px-4 py-5 my-5 text-center">
+        <h2 class="display-5 fw-bold text-body-emphasis">Наш католог для вас</h2>
+    </div>
+    <div class="container marketing">
+        <div class="row mb-2">
+            {% for book in carousel_one_books %}
+                <div class="col-md-6">
+                    <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+                        <!-- Жанр -->
+                        <div class="col p-4 d-flex flex-column position-static">
+                            {% if book.authors.all %}
+                                <strong class="d-inline-block mb-2 text-primary-emphasis">
+                                    {% for author in book.authors.all %}
+                                        {{ author.name|truncatechars:30 }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </strong>
+                            {% else %}
+                                <strong class="d-inline-block mb-2 text-primary-emphasis">Автор не добавлен</strong>
+                            {% endif %}
+
+                            <!-- Название -->
+                            <h3 class="mb-0">{{ book.title|truncatechars:30 }}</h3>
+
+                            <!-- Год издания -->
+                            {% if book.year %}
+                                <div class="mb-1 text-body-secondary">{{ book.year }} год</div>
+                            {% else %}
+                                <div class="mb-1 text-body-secondary">Год не указан</div>
+                            {% endif %}
+
+                            <!-- Описание -->
+                            {% if book.description %}
+                                <p class="card-text mb-auto">{{ book.description|truncatewords:15 }}</p>
+                            {% else %}
+                                <p class="card-text mb-auto">Описание отсутствует.</p>
+                            {% endif %}
+
+
+                        </div>
+
+                        <!-- Обложка -->
+                        <div class="col-auto d-none d-lg-block">
+                            {% if book.cover %}
+                                <img src="{{ '../static/media/'|add:book.cover.url }}" alt="Обложка {{ book.title }}"
+                                     width="200" height="250"
+                                     style="object-fit: fill;">
+                            {% else %}
+                                <svg aria-label="Обложки нет" class="bd-placeholder-img" height="250"
+                                     preserveAspectRatio="xMidYMid slice" role="img" width="200"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <title>Placeholder</title>
+                                    <rect width="100%" height="100%" fill="#55595c"></rect>
+                                    <text x="50%" y="50%" fill="#eceeef" dy=".3em">Обложки нет</text>
+                                </svg>
+                            {% endif %}
+                        </div>
+
+                        <div class="overlay-description">
+                            {% if book.description %}
+                                {{ book.description|truncatewords:80 }}
+                            {% else %}
+                                Описание отсутствует.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <a class="prev" onclick="showBooks(-1)">&#10094;</a>
+        <a class="next" onclick="showBooks(1)">&#10095;</a>
+    </div>
+
+
+
+    <script>
+        let currentIndex = 0;
+        const itemsPerPage = 4;
+
+        function showBooks(direction) {
+            const items = document.querySelectorAll(".col-md-6");
+            const totalItems = items.length;
+
+            // Скрываем все элементы
+            items.forEach(item => item.style.display = 'none');
+
+            // Обновляем индекс
+            currentIndex += direction;
+
+            // Ограничиваем индекс
+            if (currentIndex < 0) {
+                currentIndex = 0;
+            }
+
+            const maxIndex = Math.ceil(totalItems / itemsPerPage) - 1;
+            if (currentIndex > maxIndex) {
+                currentIndex = maxIndex;
+            }
+
+            // Показываем нужные элементы
+            for (let i = currentIndex * itemsPerPage; i < Math.min((currentIndex + 1) * itemsPerPage, totalItems); i++) {
+                items[i].style.display = 'block';
+            }
+
+            // Управление видимостью кнопок
+            const prevButton = document.querySelector(".prev");
+            const nextButton = document.querySelector(".next");
+
+            if (prevButton && nextButton) {
+                // Показываем/скрываем кнопки в зависимости от наличия страниц
+                prevButton.style.display = (currentIndex > 0) ? "block" : "none";
+                nextButton.style.display = (currentIndex < maxIndex) ? "block" : "none";
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener("DOMContentLoaded", function () {
+            const items = document.querySelectorAll(".col-md-6");
+            const totalItems = items.length;
+            const maxIndex = Math.ceil(totalItems / itemsPerPage) - 1;
+
+            // Если книг нет вообще — скрываем кнопки
+            const prevButton = document.querySelector(".prev");
+            const nextButton = document.querySelector(".next");
+
+            if (prevButton && nextButton) {
+                if (totalItems === 0) {
+                    prevButton.style.display = "none";
+                    nextButton.style.display = "none";
+                } else {
+                    // Сначала показываем только доступные
+                    prevButton.style.display = "none";
+                    nextButton.style.display = (maxIndex > 0) ? "block" : "none";
+                }
+            }
+
+            showBooks(0); // Показать первые 4
+        });
+    </script>
+{% endblock content %}
